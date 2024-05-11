@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -27,14 +27,26 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
   const [newBook, setNewBook] = useState({ id: null, category: "", title: "", author: "", inStock: false });
 
   const filteredBooks = sortedBooks.filter((book: { title: string, inStock: boolean, author: string, category: string, id: number }) => {
-    //  return book.inStock==true
-    return book
     /*
     The filteredBooks array contains books from sortedBooks that match the filterText in their title (case-insensitive) and, 
     if the "inStockOnly" flag is set, are in stock. It filters the displayed books based on user input and stock availability.
     */
+    return book
 
   });
+
+  useEffect(() => {
+    console.log('filterText', filterText);
+    if (filterText) {
+      let filteredBook = filteredBooks.filter((book: { title: string, inStock: boolean, author: string, category: string, id: number }) => {
+        return book.title.toLowerCase().includes(filterText.toLowerCase())
+      })
+      setSortedBooks(filteredBook);
+    } else {
+      setSortedBooks(books);
+    }
+  }, [filterText])
+
 
   const toggleSwitch = (value: boolean) => {
     if (value) {
@@ -45,15 +57,14 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
     }
   }
 
-
   const clearFilters = () => {
+    /*
+   resets the filter and sorting options by clearing the filter text, setting the "In Stock Only" toggle to false, 
+   and restoring the book list to its original order from the books array.
+   */
+    setFilterText('')
     setInStockOnly(false)
     toggleSwitch(false)
-    /*
-    resets the filter and sorting options by clearing the filter text, setting the "In Stock Only" toggle to false, 
-    and restoring the book list to its original order from the books array.
-    */
-
   };
 
   const addBook = () => {
