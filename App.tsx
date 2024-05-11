@@ -70,11 +70,10 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
     //selected book by populating the input fields with the book's data, enabling them to make changes and save updates.
   };
 
-  const deleteBook = (sortedBooks: any, id: number) => {
-    // console.log(id);
-    // sortedBooks.filter((book: { id: number }) => book.id !== id);
-
+  const deleteBook = (id: number) => {
     //Remove a book with a specific ID from the sortedBooks state and update the state with the filtered array of books, effectively deleting the book.
+    let data = sortedBooks.filter((book: { id: number }) => book.id !== id);
+    setSortedBooks(data);
   };
 
 
@@ -144,7 +143,7 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
             <Text style={styles.editButtonText}>Edit</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => deleteBook(sortedBooks, item.id)}
+            onPress={() => deleteBook(item.id)}
             style={styles.deleteButton}>
             <Text style={styles.deleteButtonText}>Delete</Text>
           </TouchableOpacity>
