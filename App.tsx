@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   Switch,
-  FlatList,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
@@ -32,11 +31,9 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
     if the "inStockOnly" flag is set, are in stock. It filters the displayed books based on user input and stock availability.
     */
     return book
-
   });
 
   useEffect(() => {
-    console.log('filterText', filterText);
     if (filterText) {
       let filteredBook = filteredBooks.filter((book: { title: string, inStock: boolean, author: string, category: string, id: number }) => {
         return book.title.toLowerCase().includes(filterText.toLowerCase())
@@ -77,18 +74,27 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
     if (newBook.title) {
       if (newBook.author) {
         if (newBook.category) {
-          let newBookArr = [...sortedBooks, newBook];
-          newBookArr = newBookArr.map(book => ({ ...book, id: book.id ?? index + 2 })); // Assign a default value if id is null
-          setSortedBooks(newBookArr);
+          newBook.inStock
+          if (newBook.id == null) {
+            let newBookArr = [...sortedBooks, newBook];
+            newBookArr = newBookArr.map(book => ({ ...book, id: book.id ?? index + 2 })); // Assign a default value if id is null
+            setSortedBooks(newBookArr);
+          } else {
+            const index = sortedBooks.findIndex(o => o.id === newBook.id);
+            let newBookArr = [...sortedBooks];
+            newBookArr[index] = newBook;
+            setSortedBooks(newBookArr);
+          }
           setNewBook({ id: null, category: "", title: "", author: "", inStock: false });
         }
       }
     }
   };
 
-  const editBook = () => {
+  const editBook = (book: typeof BOOKS[number]) => {
     // Set the newBook state to the details of the book passed as an argument. This allows the user to edit the information of a 
     //selected book by populating the input fields with the book's data, enabling them to make changes and save updates.
+    setNewBook(book)
   };
 
   const deleteBook = (id: number) => {
@@ -108,7 +114,6 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
     {
       title: 'Books',
       data: filteredBooks,
-      // data: BOOKS
     },
   ];
 
@@ -160,7 +165,9 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
           </Text>
         </View>
         <View style={styles.actionsCell}>
-          <TouchableOpacity style={styles.editButton}>
+          <TouchableOpacity
+            onPress={() => editBook(item)}
+            style={styles.editButton}>
             <Text style={styles.editButtonText}>Edit</Text>
           </TouchableOpacity>
           <TouchableOpacity
