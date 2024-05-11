@@ -26,35 +26,43 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
   const [sortedBooks, setSortedBooks] = useState(books);
   const [newBook, setNewBook] = useState({ id: null, category: "", title: "", author: "", inStock: false });
 
-  const filteredBooks = sortedBooks.filter((book:{title:string, inStock:boolean, author:string, category:string, id:number}) => {
-       
+  const filteredBooks = sortedBooks.filter((book: { title: string, inStock: boolean, author: string, category: string, id: number }) => {
+    //  return book.inStock==true
+    return book
     /*
     The filteredBooks array contains books from sortedBooks that match the filterText in their title (case-insensitive) and, 
     if the "inStockOnly" flag is set, are in stock. It filters the displayed books based on user input and stock availability.
-    */  
- 
+    */
+
   });
 
 
   const clearFilters = () => {
-      
-     /*
-     resets the filter and sorting options by clearing the filter text, setting the "In Stock Only" toggle to false, 
-     and restoring the book list to its original order from the books array.
-     */ 
-   
+
+    /*
+    resets the filter and sorting options by clearing the filter text, setting the "In Stock Only" toggle to false, 
+    and restoring the book list to its original order from the books array.
+    */
+
   };
 
   const addBook = () => {
-
-    console.log('new Book',newBook);
-
-      
-      /*
-      Adds a new book to the list of sorted books if it has a title, author, and category, 
-      either by generating a new ID or updating an existing book. It then resets the input fields for a new book entry.
-      */
-  
+    /*
+    Adds a new book to the list of sorted books if it has a title, author, and category, 
+    either by generating a new ID or updating an existing book. It then resets the input fields for a new book entry.
+    */
+    const highestObj = Math.max(...sortedBooks.map(o => o.id));
+    const index = sortedBooks.findIndex(o => o.id === highestObj);
+    if (newBook.title) {
+      if (newBook.author) {
+        if (newBook.category) {
+          let newBookArr = [...sortedBooks, newBook];
+          newBookArr = newBookArr.map(book => ({ ...book, id: book.id ?? index + 2 })); // Assign a default value if id is null
+          setSortedBooks(newBookArr);
+          setNewBook({ id: null, category: "", title: "", author: "", inStock: false });
+        }
+      }
+    }
   };
 
   const editBook = () => {
@@ -62,29 +70,89 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
     //selected book by populating the input fields with the book's data, enabling them to make changes and save updates.
   };
 
-  const deleteBook = (id: number) => {
-   //Remove a book with a specific ID from the sortedBooks state and update the state with the filtered array of books, effectively deleting the book.
+  const deleteBook = (sortedBooks: any, id: number) => {
+    // console.log(id);
+    // sortedBooks.filter((book: { id: number }) => book.id !== id);
+
+    //Remove a book with a specific ID from the sortedBooks state and update the state with the filtered array of books, effectively deleting the book.
   };
-  
- const sortBooksAlphabetically = () => {
+
+
+  const sortBooksAlphabetically = () => {
     const sorted = [...sortedBooks];
     sorted.sort((a, b) => a.title.localeCompare(b.title));
     setSortedBooks(sorted);
   };
- 
+
   const sectionData = [
     {
       title: 'Books',
       data: filteredBooks,
+      // data: BOOKS
     },
   ];
 
   // Get the item layout for the SectionList
   const getItemLayoutFunc = getItemLayout({
     getItemHeight: (rowData, sectionIndex, rowIndex) => 60,
-    getSectionHeaderHeight: () => 40, 
-    getSectionFooterHeight: () => 0, 
+    getSectionHeaderHeight: () => 40,
+    getSectionFooterHeight: () => 0,
   });
+
+
+  const renderSecHeader = () => {
+    return (
+      <View style={styles.tableHeader}>
+        <View style={styles.headerItem}>
+          <Text style={styles.headerText}>Title</Text>
+        </View>
+        <View style={styles.headerItem}>
+          <Text style={styles.headerText}>Author</Text>
+        </View>
+        <View style={styles.headerItem}>
+          <Text style={styles.headerText}>Category</Text>
+        </View>
+        <View style={styles.headerItem}>
+          <Text style={styles.headerText}>In Stock</Text>
+        </View>
+        <View style={styles.headerItem}>
+          <Text style={styles.headerText}>Action</Text>
+        </View>
+      </View>
+    )
+  }
+
+  const renderBookItem = ({ item }: { item: typeof BOOKS[number] }) => {
+    return (
+      <View style={styles.bookRow}>
+        <View style={styles.cell}>
+          <Text>{item.title}</Text>
+        </View>
+        <View style={styles.cell}>
+          <Text>{item.author}</Text>
+        </View>
+        <View style={styles.cell}>
+          <Text>{item.category}</Text>
+        </View>
+        <View style={styles.cell}>
+          <Text style={item.inStock ? styles.inStock : styles.notInStock}>
+            {item.inStock ? 'Yes' : 'No'}
+          </Text>
+        </View>
+        <View style={styles.actionsCell}>
+          <TouchableOpacity style={styles.editButton}>
+            <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => deleteBook(sortedBooks, item.id)}
+            style={styles.deleteButton}>
+            <Text style={styles.deleteButtonText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+    )
+  }
 
   return (
     <View style={styles.container}>
@@ -100,7 +168,7 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
         <TouchableOpacity style={styles.clearButton}>
           <Text style={styles.clearButtonText}>Clear Filters</Text>
         </TouchableOpacity>
-         <TouchableOpacity style={styles.sortButton} onPress={sortBooksAlphabetically}>
+        <TouchableOpacity style={styles.sortButton} onPress={sortBooksAlphabetically}>
           <Text style={styles.sortButtonText}>Sort</Text>
         </TouchableOpacity>
       </View>
@@ -138,7 +206,9 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
             onValueChange={value => setNewBook({ ...newBook, inStock: value })}
           />
         </View>
-        <TouchableOpacity style={styles.addButton}>
+        <TouchableOpacity
+          onPress={() => addBook()}
+          style={styles.addButton}>
           <Text style={styles.addButtonText}>{newBook.id ? 'Update' : 'Add'}</Text>
         </TouchableOpacity>
       </View>
@@ -149,54 +219,9 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
         <SectionList
           sections={sectionData}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.bookRow}>
-              <View style={styles.cell}>
-                <Text>{item.title}</Text>
-              </View>
-              <View style={styles.cell}>
-                <Text>{item.author}</Text>
-              </View>
-              <View style={styles.cell}>
-                <Text>{item.category}</Text>
-              </View>
-              <View style={styles.cell}>
-                <Text style={item.inStock ? styles.inStock : styles.notInStock}>
-                  {item.inStock ? 'Yes' : 'No'}
-                </Text>
-              </View>
-              <View style={styles.actionsCell}>
-                <TouchableOpacity style={styles.editButton}>
-                  <Text style={styles.editButtonText}>Edit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.deleteButton}>
-                  <Text style={styles.deleteButtonText}>Delete</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-          renderSectionHeader={({ section }) => (
-            <View style={styles.tableHeader}>
-              <View style={styles.headerItem}>
-                <Text style={styles.headerText}>Title</Text>
-              </View>
-              <View style={styles.headerItem}>
-                <Text style={styles.headerText}>Author</Text>
-              </View>
-              <View style={styles.headerItem}>
-                <Text style={styles.headerText}>Category</Text>
-              </View>
-              <View style={styles.headerItem}>
-                <Text style={styles.headerText}>In Stock</Text>
-              </View>
-              <View style={styles.headerItem}>
-                <Text style={styles.headerText}>Action</Text>
-              </View>
-            </View>
-          )}
-         
+          renderItem={(item) => renderBookItem(item)}
+          renderSectionHeader={() => renderSecHeader()}
           getItemLayout={getItemLayoutFunc}
-         
           stickySectionHeadersEnabled={true}
         />
       </ScrollView>
@@ -295,7 +320,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 5,
     elevation: 2,
-    maxHeight: 250, 
+    maxHeight: 250,
   },
   tableHeader: {
     flexDirection: 'row',
@@ -304,7 +329,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   headerItem: {
-    flex: 1, 
+    flex: 1,
     paddingHorizontal: 16,
     minWidth: 150,
     alignItems: 'center',
@@ -323,14 +348,14 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cell: {
-    flex: 1, 
+    flex: 1,
     paddingHorizontal: 16,
-    minWidth: 150, 
+    minWidth: 150,
   },
   actionsCell: {
-    flexDirection: 'row', 
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between', 
+    justifyContent: 'space-between',
   },
   editButton: {
     backgroundColor: 'blue',
@@ -365,5 +390,5 @@ const styles = StyleSheet.create({
 });
 
 export default function App() {
-    return <FilterableBookTable books={BOOKS} />;
-  }
+  return <FilterableBookTable books={BOOKS} />;
+}
