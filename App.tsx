@@ -36,9 +36,19 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
 
   });
 
+  const toggleSwitch = (value: boolean) => {
+    if (value) {
+      let data = sortedBooks.filter((book: { inStock: boolean }) => book.inStock === true);
+      setSortedBooks(data);
+    } else {
+      setSortedBooks(books);
+    }
+  }
+
 
   const clearFilters = () => {
-
+    setInStockOnly(false)
+    toggleSwitch(false)
     /*
     resets the filter and sorting options by clearing the filter text, setting the "In Stock Only" toggle to false, 
     and restoring the book list to its original order from the books array.
@@ -164,7 +174,9 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
           value={filterText}
           onChangeText={setFilterText}
         />
-        <TouchableOpacity style={styles.clearButton}>
+        <TouchableOpacity
+          onPress={() => clearFilters()}
+          style={styles.clearButton}>
           <Text style={styles.clearButtonText}>Clear Filters</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.sortButton} onPress={sortBooksAlphabetically}>
@@ -176,7 +188,7 @@ const FilterableBookTable = ({ books }: { books: typeof BOOKS }) => {
         <Switch
           testID="inStockSwitch"
           value={inStockOnly}
-          onValueChange={setInStockOnly}
+          onValueChange={(value) => { setInStockOnly(value), toggleSwitch(value) }}
         />
       </View>
       <View style={styles.addBookContainer}>
